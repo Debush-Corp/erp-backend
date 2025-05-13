@@ -145,4 +145,8 @@ REST_FRAMEWORK = {
 }
 
 
-CORS_ALLOWED_ORIGINS = ['localhost', '127.0.0.1', 'erp-frontend-lzed.onrender.com']
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:8000',
+    'https://erp-frontend-lzed.onrender.com'
+]
