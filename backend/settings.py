@@ -144,5 +144,5 @@ REST_FRAMEWORK = {
 
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
+    "https://erp-frontend-opal-nu.vercel.app",
 ]
