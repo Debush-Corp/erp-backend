@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-ah=ljbs0w3c==htti0vpow2p6u@j(kou0s!8(ugf^v&vaeq6+1
 #DEBUG = True
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'erp-frontend-six-ebon.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'erp-frontend-six-ebon.vercel.app', 'erp-backend-i9ej.onrender.com']
 
 # Application definition
 
