@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-ah=ljbs0w3c==htti0vpow2p6u@j(kou0s!8(ugf^v&vaeq6+1
 #DEBUG = True
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'erp-frontend-opal-nu.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'erp-frontend-six-ebon.vercel.app']
 
 # Application definition
 
@@ -127,6 +127,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -143,4 +144,4 @@ REST_FRAMEWORK = {
 }
 
 
-CORS_ALLOWED_ORIGINS = ['localhost', '127.0.0.1', 'erp-frontend-opal-nu.vercel.app']
+CORS_ALLOWED_ORIGINS = ['localhost', '127.0.0.1', 'erp-frontend-six-ebon.vercel.app']
