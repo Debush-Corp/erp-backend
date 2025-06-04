@@ -3,8 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
-
-from .serializers import CustomTokenObtainPairSerializer, UserSerializer
+from accounts_app.models import UserActivity
+from accounts_app.serializers import UserSerializer
+from .serializers import CustomTokenObtainPairSerializer
 
 class LoginView(TokenObtainPairView):
     """
@@ -25,7 +26,7 @@ class LogoutView(APIView):
     """
     POST /api/auth/logout/
     body: { refresh }
-    Revoca el refresh token (usa blacklist).
+    Revoca el refresh token y actualiza is_online.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -33,6 +34,14 @@ class LogoutView(APIView):
         try:
             token = RefreshToken(request.data['refresh'])
             token.blacklist()
+            request.user.is_online = False
+            request.user.save()
+            UserActivity.objects.create(
+                user=request.user,
+                action='logout',
+                description=f'Usuario {request.user.username} finalizó actividad',
+                module='auth_app'
+            )
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception:
             return Response(status=status.HTTP_400_BAD_REQUEST)
