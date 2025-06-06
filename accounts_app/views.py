@@ -7,11 +7,6 @@ from pagination import SmallPagination, MediumPagination, LargePagination, Extra
 
 User = get_user_model()
 
-# Permiso personalizado: admin o el propio usuario
-class IsAdminOrSelf(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return request.user.is_staff or obj == request.user
-
 # Vista para listar usuarios (solo admins)
 class UserListCreateView(generics.ListCreateAPIView):
     """
@@ -20,7 +15,7 @@ class UserListCreateView(generics.ListCreateAPIView):
     """
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.DjangoModelPermissions]
     pagination_class = SmallPagination
 
 # Vista para detalles, actualización y eliminación de usuarios
@@ -32,7 +27,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminOrSelf]
+    permission_classes = [permissions.DjangoModelPermissions]
 
     def perform_destroy(self, instance):
         UserActivity.objects.create(
@@ -50,7 +45,7 @@ class GroupListView(generics.ListAPIView):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.DjangoModelPermissions]
     pagination_class = MediumPagination
 
 class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -61,6 +56,7 @@ class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+    permission_classes = [permissions.DjangoModelPermissions]
 
 # Vista para crear grupo (solo admins)
 class GroupCreateView(generics.CreateAPIView):
@@ -69,7 +65,7 @@ class GroupCreateView(generics.CreateAPIView):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.DjangoModelPermissions]
 
 # Vista para el perfil del usuario autenticado
 class MeView(generics.RetrieveUpdateAPIView):
