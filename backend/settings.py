@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'auth_app',
     'accounts_app',
+    'password_app',
     'corsheaders',
 ]
 
