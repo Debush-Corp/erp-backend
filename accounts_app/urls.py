@@ -1,14 +1,19 @@
 from django.urls import path
-from .views import UserListCreateView, UserDetailView, MeView, GroupListView, GroupCreateView, GroupDetailView
-
+from .views import (
+    UserListCreateView,
+    UserDetailView,
+    MeView,
+    GroupListCreateView,
+    GroupDetailView
+)
 
 urlpatterns = [
-    path('users/', UserListCreateView.as_view(), name='user-list'),
-    path('users/', UserListCreateView.as_view(), name='user-create'),
+    # endpoints de usuarios
+    path('users/', UserListCreateView.as_view(), name='user-list-create'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
-    path('me/', MeView.as_view(), name='me'),
+    path('me/', MeView.as_view(), name='me'),  # Perfil del usuario autenticado
 
-    path('groups/', GroupListView.as_view(), name='group-list'),
-    path('groups/', GroupCreateView.as_view(), name='group-create'),
+    # endpoints de grupos
+    path('groups/', GroupListCreateView.as_view(), name='group-list-create'),
     path('groups/<int:pk>/', GroupDetailView.as_view(), name='group-detail'),
 ]

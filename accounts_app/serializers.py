@@ -16,13 +16,13 @@ class GroupSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.save()
         return instance
-    
+
 class SimpleGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['name']
 
-# Serializer para auth_user
+# Serializer para el usuario
 class UserSerializer(serializers.ModelSerializer):
     group_ids = serializers.ListField(
         child=serializers.IntegerField(), write_only=True, required=False
@@ -31,8 +31,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email', 'date_joined', 'is_active', 'last_login', 'groups', 'group_ids']
+        fields = [
+            'id', 'username', 'password', 'first_name', 'last_name',
+            'email', 'document', 'date_joined', 'is_active',
+            'last_login', 'groups', 'group_ids'
+        ]
         read_only_fields = ['id', 'date_joined', 'is_active', 'last_login', 'groups']
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         group_ids = validated_data.pop('group_ids', [])
@@ -41,23 +46,40 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         if group_ids:
-            user.groups.set(Group.objects.filter(id__in=group_ids))
+            user.groups.set(group_ids)
         return user
 
     def update(self, instance, validated_data):
-        group_ids = validated_data.pop('group_ids', None)
-        allowed_fields = ['username', 'first_name', 'last_name', 'email', 'is_active']
-        for field in allowed_fields:
-            if field in validated_data:
-                setattr(instance, field, validated_data[field])
-        if group_ids is not None:
-            instance.groups.set(Group.objects.filter(id__in=group_ids))
+        group_ids = validated_data.pop('group_ids', [])
+        password = validated_data.pop('password', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+
         instance.save()
+        if group_ids:
+            instance.groups.set(group_ids)
+
         return instance
-    
+
+# Serializer para UserActivity
+class UserActivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserActivity
+        fields = '__all__'
+        read_only_fields = ['id', 'timestamp']
+
+# MeSerializer
 class MeSerializer(serializers.ModelSerializer):
     groups = SimpleGroupSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'groups']
+        fields = [
+            'id', 'username', 'first_name', 'last_name',
+            'email', 'document', 'date_joined', 'last_login', 'groups'
+        ]
+        read_only_fields = fields

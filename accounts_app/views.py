@@ -1,13 +1,17 @@
 from rest_framework import generics, permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+
 from .models import UserActivity
 from .serializers import UserSerializer, MeSerializer, GroupSerializer
-from pagination import SmallPagination, MediumPagination, LargePagination, ExtraLargePagination
+from pagination import SmallPagination
 
 User = get_user_model()
 
-# Vista para listar usuarios (solo admins)
+
+# Vista para listar y crear usuarios
 class UserListCreateView(generics.ListCreateAPIView):
     """
     GET /api/accounts/users/ - Lista usuarios (solo admins)
@@ -18,7 +22,8 @@ class UserListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.DjangoModelPermissions]
     pagination_class = SmallPagination
 
-# Vista para detalles, actualización y eliminación de usuarios
+
+# Vista para obtener, actualizar y eliminar un usuario
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET /api/accounts/users/<id>/ - Detalles del usuario (admin o propio)
@@ -38,43 +43,38 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         )
         instance.delete()
 
-# Vista para listar grupos (solo admins)
-class GroupListView(generics.ListAPIView):
-    """
-    GET /api/accounts/groups/ - Lista todos los grupos (solo admins)
-    """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = [permissions.DjangoModelPermissions]
-    pagination_class = MediumPagination
 
-class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
+# Vista para obtener el usuario autenticado (tipo perfil)
+class MeView(APIView):
     """
-    GET /api/accounts/groups/<id>/ - Detalles del rol (solo admins)
-    PUT /api/accounts/groups/<id>/ - Actualiza el rol (solo admins)
-    DELETE /api/accounts/groups/<id>/ - Elimina el rol (solo admins)
+    GET /api/accounts/me/ - Retorna los datos del usuario autenticado
     """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = [permissions.DjangoModelPermissions]
-
-# Vista para crear grupo (solo admins)
-class GroupCreateView(generics.CreateAPIView):
-    """
-    POST /api/accounts/groups/ - Crea un nuevo grupo (solo admins)
-    """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = [permissions.DjangoModelPermissions]
-
-# Vista para el perfil del usuario autenticado
-class MeView(generics.RetrieveUpdateAPIView):
-    """
-    GET /api/accounts/me/ - Detalles del usuario autenticado
-    PUT /api/accounts/me/ - Actualiza el perfil del usuario autenticado
-    """
-    serializer_class = MeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
+    def get(self, request):
+        serializer = MeSerializer(request.user)
+        return Response(serializer.data)
+
+
+# Vista para listar y crear grupos
+class GroupListCreateView(generics.ListCreateAPIView):
+    """
+    GET /api/accounts/groups/ - Lista todos los grupos
+    POST /api/accounts/groups/ - Crea un nuevo grupo
+    """
+    queryset = Group.objects.all().order_by('id')
+    serializer_class = GroupSerializer
+    permission_classes = [permissions.DjangoModelPermissions]
+    pagination_class = SmallPagination
+
+
+# Vista para detalles de grupo
+class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET /api/accounts/groups/<id>/ - Detalles del grupo
+    PUT /api/accounts/groups/<id>/ - Actualiza el grupo
+    DELETE /api/accounts/groups/<id>/ - Elimina el grupo
+    """
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [permissions.DjangoModelPermissions]

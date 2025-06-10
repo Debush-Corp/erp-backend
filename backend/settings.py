@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'auth_app',
     'accounts_app',
     'password_app',
+    'drf_yasg',
     'corsheaders',
 ]
 
@@ -79,6 +80,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+# Custom Models
+AUTH_USER_MODEL = 'accounts_app.AuthCustomUser'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -93,6 +97,7 @@ DATABASES = {
         'PORT': config('DATABASE_PORT', default='5432'),
     }
 }
+
 
 
 # Password validation
@@ -150,5 +155,16 @@ REST_FRAMEWORK = {
     #],
 }
 
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': True,
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT token usando formato: Bearer <token>',
+        }
+    },
+}
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS').split(',')
