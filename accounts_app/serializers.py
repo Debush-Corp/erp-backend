@@ -5,7 +5,6 @@ from .models import UserActivity
 
 User = get_user_model()
 
-# Serializer para auth_group
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
@@ -22,7 +21,6 @@ class SimpleGroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ['name']
 
-# Serializer para el usuario
 class UserSerializer(serializers.ModelSerializer):
     group_ids = serializers.ListField(
         child=serializers.IntegerField(), write_only=True, required=False
@@ -39,6 +37,14 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'date_joined', 'is_active', 'last_login', 'groups']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def validate_group_ids(self, value):
+        if value:
+            valid_groups = Group.objects.filter(id__in=value).values_list('id', flat=True)
+            invalid_ids = set(value) - set(valid_groups)
+            if invalid_ids:
+                raise serializers.ValidationError(f"Los siguientes IDs de grupos no existen: {invalid_ids}")
+        return value
+
     def create(self, validated_data):
         group_ids = validated_data.pop('group_ids', [])
         password = validated_data.pop('password')
@@ -46,7 +52,10 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         if group_ids:
-            user.groups.set(group_ids)
+            try:
+                user.groups.set(group_ids)
+            except Exception as e:
+                raise serializers.ValidationError(f"Error al asignar grupos: {str(e)}")
         return user
 
     def update(self, instance, validated_data):
@@ -61,18 +70,19 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.save()
         if group_ids:
-            instance.groups.set(group_ids)
+            try:
+                instance.groups.set(group_ids)
+            except Exception as e:
+                raise serializers.ValidationError(f"Error al asignar grupos: {str(e)}")
 
         return instance
 
-# Serializer para UserActivity
 class UserActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserActivity
         fields = '__all__'
         read_only_fields = ['id', 'timestamp']
 
-# MeSerializer
 class MeSerializer(serializers.ModelSerializer):
     groups = SimpleGroupSerializer(many=True, read_only=True)
 

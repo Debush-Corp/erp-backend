@@ -9,7 +9,7 @@ class GeneratePasswordView(generics.CreateAPIView):
     POST /password/api/generate/ - Genera una contraseña según los parámetros proporcionados
     """
     serializer_class = PasswordRequestSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Requiere autenticación
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

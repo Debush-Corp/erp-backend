@@ -11,10 +11,12 @@ class BasePagination(PageNumberPagination):
         total_items = self.page.paginator.count
         page_size = self.get_page_size(self.request)
         total_pages = math.ceil(total_items / page_size) if page_size else 1
+        total = self.page.paginator.object_list.model.objects.count()
 
         return Response({
             'count': total_items,
             'total_pages': total_pages,
+            'total': total,
             'next': self.get_next_link(),
             'previous': self.get_previous_link(),
             'results': data

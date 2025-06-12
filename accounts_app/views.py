@@ -1,8 +1,10 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.exceptions import FieldDoesNotExist
+import re
 
 from .models import UserActivity
 from .serializers import UserSerializer, MeSerializer, GroupSerializer
@@ -10,7 +12,56 @@ from pagination import SmallPagination
 
 User = get_user_model()
 
+# Vista para validar fields
+class ValidateFieldView(APIView):
+    """
+    POST /api/accounts/users/validate/ - Valida un campo único del modelo User
+    Expects: { "field": string, "value": string }
+    """
+    permission_classes = [permissions.IsAuthenticated]
 
+    def post(self, request):
+        field = request.data.get('field', '').strip()
+        value = request.data.get('value', '').strip()
+
+        print(f"Recibiendo del backend: field={field}, value={value}")
+
+        # Validar que se proporcionen ambos parámetros
+        if not field or not value:
+            return Response(
+                {'valid': False, 'error_code': 'invalid_request', 'error': 'Se requieren los campos "field" y "value".'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Verificar si el campo existe en el modelo User
+            User._meta.get_field(field)
+
+            # Crear el filtro dinámico
+            filter_kwargs = {field: value}
+
+            # Verificar si el valor ya existe
+            if User.objects.filter(**filter_kwargs).exists():
+                return Response(
+                    {'valid': False, 'error_code': 'duplicate', 'error': f'El {field} ingresado ya existe.'},
+                    status=status.HTTP_200_OK
+                )
+            return Response(
+                {'valid': True, 'message': f'{field.capitalize()} disponible.'},
+                status=status.HTTP_200_OK
+            )
+        except FieldDoesNotExist:
+            return Response(
+                {'valid': False, 'error_code': 'invalid_field', 'error': f'El campo {field} no es válido.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            print(f"Error en el servidor: {str(e)}")
+            return Response(
+                {'valid': False, 'error_code': 'error', 'error': 'Error en el servidor.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
 # Vista para listar y crear usuarios
 class UserListCreateView(generics.ListCreateAPIView):
     """
