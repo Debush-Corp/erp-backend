@@ -79,11 +79,36 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET /api/accounts/users/<id>/ - Detalles del usuario (admin o propio)
     PUT /api/accounts/users/<id>/ - Actualiza el usuario (admin o propio)
+    PATCH /api/accounts/users/<id>/ - Actualiza parcialmente el usuario (admin o propio)
     DELETE /api/accounts/users/<id>/ - Elimina el usuario (solo admins)
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.DjangoModelPermissions]
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        print(f"[GET] Usuario: {serializer.data}")
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        if request.method == "PUT":
+            print(f"[PUT] Datos recibidos: {request.data}")
+        else:
+            print(f"[PATCH dentro de update()] Datos recibidos: {request.data}")
+        return super().update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        print(f"[PATCH] Datos recibidos: {request.data}")
+        return super().partial_update(request, *args, **kwargs)
+    
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        username = instance.username
+        self.perform_destroy(instance)
+        print(f"[DELETE] Usuario eliminado: {username}")
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
         UserActivity.objects.create(

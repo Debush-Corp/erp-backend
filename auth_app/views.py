@@ -6,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts_app.models import UserActivity
 from accounts_app.serializers import UserSerializer
 from .serializers import CustomTokenObtainPairSerializer
+from django.utils.timezone import now
+from django.contrib.auth import get_user_model
 
 class LoginView(TokenObtainPairView):
     """
@@ -14,6 +16,19 @@ class LoginView(TokenObtainPairView):
     """
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            username = request.data.get('username')
+            User = get_user_model()
+            try:
+                user = User.objects.get(username=username)
+                user.last_login = now()
+                user.save(update_fields=['last_login'])
+            except User.DoesNotExist:
+                pass
+        return response
 
 class RefreshView(TokenRefreshView):
     """
